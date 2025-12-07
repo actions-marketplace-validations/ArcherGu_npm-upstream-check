@@ -1,7 +1,7 @@
 {
   "name": "npm-upstream-check",
   "version": "0.0.1",
-  "packageManager": "pnpm@8.9.2",
+  "packageManager": "pnpm@10.24.0",
   "description": "Check the updates of upstream npm dependencies",
   "author": "ArcherGu",
   "license": "MIT",
@@ -17,22 +17,20 @@
     "postinstall": "npx simple-git-hooks"
   },
   "dependencies": {
-    "@actions/core": "^1.10.1",
-    "@actions/github": "^6.0.0"
+    "@actions/core": "^1.11.1",
+    "@actions/github": "^6.0.1"
   },
   "devDependencies": {
-    "@lightwing/eslint-config": "^0.0.24",
-    "@types/node": "^20.8.6",
-    "@vercel/ncc": "^0.38.0",
-    "conventional-changelog-cli": "^4.1.0",
-    "eslint": "^8.51.0",
-    "lint-staged": "^15.0.1",
-    "npm-check-updates": "^16.14.6",
-    "simple-git-hooks": "^2.9.0",
-    "tsup": "^7.2.0",
-    "tsx": "^3.13.0",
-    "typescript": "^5.2.2",
-    "vitest": "^0.34.6"
+    "@lightwing/eslint-config": "^1.0.133",
+    "@swc/core": "^1.15.3",
+    "@types/node": "^24.10.1",
+    "eslint": "^9.39.1",
+    "lint-staged": "^16.2.7",
+    "npm-check-updates": "^19.1.2",
+    "simple-git-hooks": "^2.13.1",
+    "tsup": "^8.5.1",
+    "typescript": "^5.9.3",
+    "vitest": "^4.0.15"
   },
   "simple-git-hooks": {
     "pre-commit": "npx lint-staged"

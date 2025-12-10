@@ -28,20 +28,35 @@ function prepareNcu() {
   }
 }
 
+function parseNcuOptions(ncuOptionsJson: string) {
+  try {
+    return JSON.parse(ncuOptionsJson)
+  }
+  catch {
+    return {}
+  }
+}
+
 export async function run(cwd?: string) {
   try {
     const upstreamDeps = core.getInput('upstream', { required: true }).trim().split(',')
-    const deep = core.getInput('deep', { required: false }) === 'true'
     const checkOnly = core.getInput('check-only', { required: false }) === 'true'
     const allDeps = core.getInput('all', { required: false }) === 'true'
+    const ncuOptionsJson = core.getInput('ncu-options', { required: false }) || '{}'
+    const ncuOptions = parseNcuOptions(ncuOptionsJson) as RunOptions
 
-    core.debug(`upstream npm dependencies: ${upstreamDeps.join(', ')}`)
+    core.debug(`upstream dependencies: ${upstreamDeps.join(', ')}`)
+    if (ncuOptions.packageManager) {
+      core.debug(`package manager: ${ncuOptions.packageManager}`)
+    }
+    if (ncuOptions.workspaces) {
+      core.debug('ncu: workspaces mode enabled')
+    }
 
     const ncu = prepareNcu()
 
     const updateInfos: { [key: string]: string } = {}
     const result = await ncu.run({
-      deep,
       cwd,
       filterResults: (packageName) => {
         if (allDeps)
@@ -49,6 +64,7 @@ export async function run(cwd?: string) {
 
         return upstreamDeps.includes(packageName)
       },
+      ...ncuOptions,
       upgrade: !checkOnly,
     } as RunOptions)
 
@@ -58,15 +74,15 @@ export async function run(cwd?: string) {
     }
 
     for (const key in result) {
-      if (deep) {
-        for (const pkgName in (result as any)[key]) {
+      if (typeof result[key] === 'object') {
+        for (const pkgName in result[key]) {
           if (allDeps || upstreamDeps.includes(pkgName))
-            updateInfos[pkgName] = (result as any)[key][pkgName]
+            updateInfos[pkgName] = result[key][pkgName]
         }
       }
       else {
         if (allDeps || upstreamDeps.includes(key))
-          updateInfos[key] = (result as any)[key]
+          updateInfos[key] = result[key]
       }
     }
 

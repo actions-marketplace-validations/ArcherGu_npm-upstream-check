@@ -2,6 +2,7 @@ import fs from 'node:fs'
 import path from 'node:path'
 import core from '@actions/core'
 import { afterAll, beforeAll, beforeEach, describe, expect, it, vitest } from 'vitest'
+import { parse as parseYaml, stringify as stringifyYaml } from 'yaml'
 import { run } from '../src/main'
 
 const mockDir = path.resolve(__dirname, './mock')
@@ -20,11 +21,31 @@ const srcDeepPkgJson = {
   },
 }
 
+const srcPnpmCatalogPkgJson = {
+  name: 'pnpm-catalog-test',
+  workspaces: [],
+  dependencies: {
+    'vue': 'catalog:',
+    'vue-router': 'catalog:',
+  },
+}
+
+const srcPnpmCatalogWorkspaceYaml = {
+  catalog: {
+    'vue': '^3.0.0',
+    'vue-router': '^4.0.0',
+  },
+}
+
 function readPackageJson() {
   return [
     JSON.parse(fs.readFileSync(path.resolve(mockDir, 'package.json'), 'utf-8')),
     JSON.parse(fs.readFileSync(path.resolve(mockDir, 'deep/package.json'), 'utf-8')),
   ]
+}
+
+function readPnpmCatalogWorkspaceYaml() {
+  return parseYaml(fs.readFileSync(path.resolve(mockDir, 'pnpm-workspace.yaml'), 'utf-8'))
 }
 
 const getInputMock = vitest.spyOn(core, 'getInput')
@@ -48,7 +69,6 @@ describe('action', () => {
   })
 
   afterAll(() => {
-    // 移除 mock 目录
     fs.rmSync(mockDir, { recursive: true })
   })
 
@@ -98,13 +118,13 @@ describe('action', () => {
     )
   })
 
-  it('updates the package.json with deep', async () => {
+  it('updates the package.json with ncu option', async () => {
     getInputMock.mockImplementation((name) => {
       switch (name) {
         case 'upstream':
           return 'vue,react'
-        case 'deep':
-          return 'true'
+        case 'ncu-options':
+          return '{"deep": true}'
         default:
           return ''
       }
@@ -214,6 +234,43 @@ describe('action', () => {
     expect(setFailedMock).toHaveBeenNthCalledWith(
       1,
       'Input required and not supplied: upstream',
+    )
+  })
+
+  it('updates the package.json with pnpm catalog', async () => {
+    fs.writeFileSync(path.resolve(mockDir, 'pnpm-workspace.yaml'), stringifyYaml(srcPnpmCatalogWorkspaceYaml))
+    fs.writeFileSync(path.resolve(mockDir, 'package.json'), JSON.stringify(srcPnpmCatalogPkgJson))
+
+    getInputMock.mockImplementation((name) => {
+      switch (name) {
+        case 'upstream':
+          return 'vue'
+        case 'ncu-options':
+          return '{"workspaces": true}'
+        default:
+          return ''
+      }
+    })
+
+    await runMain()
+
+    const workspaceYaml = readPnpmCatalogWorkspaceYaml()
+
+    expect(workspaceYaml.catalog.vue).not.equal(srcPnpmCatalogWorkspaceYaml.catalog.vue)
+    expect(workspaceYaml.catalog['vue-router']).equal(srcPnpmCatalogWorkspaceYaml.catalog['vue-router'])
+
+    expect(setOutputMock).toHaveBeenNthCalledWith(
+      1,
+      'need-update',
+      true,
+    )
+
+    expect(setOutputMock).toHaveBeenNthCalledWith(
+      2,
+      'dependencies',
+      {
+        vue: workspaceYaml.catalog.vue,
+      },
     )
   })
 })

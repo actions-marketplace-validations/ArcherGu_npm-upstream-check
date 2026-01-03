@@ -1,9 +1,12 @@
-import type { UserConfig } from 'vitest'
+import { configDefaults, defineConfig } from 'vitest/config'
 
-const config: { test: UserConfig } = {
+export default defineConfig({
   test: {
     testTimeout: 30 * 1000,
+    exclude: [
+      ...configDefaults.exclude,
+      '.pnpm-store/**',
+      'test/mock/**',
+    ],
   },
-}
-
-export default config
+})

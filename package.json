@@ -1,7 +1,7 @@
 {
   "name": "npm-upstream-check",
   "version": "0.0.1",
-  "packageManager": "pnpm@10.30.2",
+  "packageManager": "pnpm@11.18.0",
   "workspaces": [],
   "description": "Check the updates of upstream npm dependencies",
   "author": "ArcherGu",
@@ -11,7 +11,7 @@
   },
   "main": "dist/index.js",
   "scripts": {
-    "build": "tsup",
+    "build": "tsdown",
     "lint": "eslint .",
     "lint:fix": "eslint . --fix",
     "test": "vitest run",
@@ -24,12 +24,12 @@
   },
   "devDependencies": {
     "@lightwing/eslint-config": "catalog:",
-    "@swc/core": "catalog:",
     "@types/node": "catalog:",
+    "@typescript/native": "catalog:",
     "eslint": "catalog:",
     "lint-staged": "catalog:",
     "simple-git-hooks": "catalog:",
-    "tsup": "catalog:",
+    "tsdown": "catalog:",
     "typescript": "catalog:",
     "vitest": "catalog:",
     "yaml": "catalog:"
